@@ -1,0 +1,8 @@
+{
+  "appId": "de.skullking.punktezaehler",
+  "appName": "Skull King",
+  "webDir": ".",
+  "server": {
+    "androidScheme": "https"
+  }
+}

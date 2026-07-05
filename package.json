@@ -1,0 +1,10 @@
+{
+  "name": "skullking-punktezaehler",
+  "version": "1.0.0",
+  "description": "Punktezähler für das Kartenspiel Skull King – installierbare PWA für Android und iOS.",
+  "license": "MIT",
+  "scripts": {
+    "start": "node serve.js",
+    "test": "node test/scoring.test.js"
+  }
+}
