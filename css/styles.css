@@ -52,6 +52,20 @@ html, body {
 .app-header .sub { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
 .spacer { flex: 1; }
 
+/* Umschalter Neue/Alte Spielversion (oben rechts) */
+.version-toggle {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 13px; border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.78rem; font-weight: 700; cursor: pointer;
+  white-space: nowrap;
+}
+.version-toggle .vdot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.version-toggle.neu { color: var(--green); border-color: rgba(70, 209, 127, 0.45); background: rgba(70, 209, 127, 0.12); }
+.version-toggle.alt { color: var(--muted); }
+
 /* --- Cards & panels --- */
 .panel {
   background: linear-gradient(180deg, var(--card-2), var(--card));

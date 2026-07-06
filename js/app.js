@@ -82,6 +82,7 @@ function escapeHtml(s) {
 const appEl = document.getElementById('app');
 
 function render() {
+  if (!state.edition) state.edition = 'neu'; // 'neu' (alle Boni) oder 'alt' (ohne 14er-Boni)
   saveState();
   appEl.innerHTML = '';
   appEl.appendChild(header());
@@ -92,6 +93,7 @@ function render() {
 }
 
 function header() {
+  const isOld = state.edition === 'alt';
   const h = el(`
     <div class="app-header">
       <img src="icons/icon.svg" alt="" />
@@ -100,8 +102,15 @@ function header() {
         <div class="sub">Piraten ahoi</div>
       </div>
       <div class="spacer"></div>
+      <button class="version-toggle ${isOld ? 'alt' : 'neu'}" aria-label="Spielversion umschalten">
+        <span class="vdot"></span>${isOld ? 'Alte Version' : 'Neue Version'}
+      </button>
     </div>
   `);
+  h.querySelector('.version-toggle').addEventListener('click', () => {
+    state.edition = state.edition === 'alt' ? 'neu' : 'alt';
+    render();
+  });
   return h;
 }
 
@@ -196,8 +205,11 @@ function startGame() {
 /* ---------- Game screen ---------- */
 
 // Bonuspunkte aus den gefangenen Karten berechnen.
+// In der alten Version zählen die 14er-Boni (farbige 14 / Jolly Roger) nicht.
 function calcBonus(d) {
-  return 10 * (d.c14 || 0) + 20 * (d.b14 || 0) + 30 * (d.pirates || 0) + 50 * (d.mermaid || 0);
+  const with14 = state.edition !== 'alt';
+  const b14 = with14 ? 10 * (d.c14 || 0) + 20 * (d.b14 || 0) : 0;
+  return b14 + 30 * (d.pirates || 0) + 50 * (d.mermaid || 0);
 }
 
 function emptyDraft() {
@@ -246,8 +258,7 @@ function renderGame() {
     const bonus = calcBonus(d);
     const open = !!state.bonusOpen[p.id];
 
-    const detailHtml = open ? `
-      <div class="bonus-detail">
+    const rows14 = state.edition === 'alt' ? '' : `
         <div class="brow">
           <span class="blabel">Farbige 14 gefangen<em>je +10</em></span>
           <div class="stepper mini">
@@ -259,7 +270,11 @@ function renderGame() {
         <div class="brow">
           <span class="blabel">Schwarze 14 · Jolly Roger<em>+20</em></span>
           <button class="toggle ${d.b14 ? 'on' : ''}" data-act="b14">${d.b14 ? 'Ja' : 'Nein'}</button>
-        </div>
+        </div>`;
+
+    const detailHtml = open ? `
+      <div class="bonus-detail">
+        ${rows14}
         <div class="brow">
           <span class="blabel">Skull King fängt Pirat<em>je +30</em></span>
           <div class="stepper mini">
