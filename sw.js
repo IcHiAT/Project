@@ -1,5 +1,5 @@
 /* Service Worker – App offline verfügbar machen und Updates automatisch verteilen. */
-const CACHE = 'arrarr-v5';
+const CACHE = 'arrarr-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -24,35 +24,19 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Netzwerk-zuerst für alles: immer die aktuelle Version laden, wenn online.
+// Nur wenn das Netzwerk nicht erreichbar ist, wird aus dem Cache geliefert (offline-fähig).
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
 
-  // HTML-Seiten: zuerst Netzwerk (immer aktuell), Fallback Cache (offline).
-  if (req.mode === 'navigate') {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
-          return res;
-        })
-        .catch(() => caches.match(req).then((c) => c || caches.match('./index.html')))
-    );
-    return;
-  }
-
-  // Übrige Dateien: sofort aus Cache liefern, im Hintergrund aktualisieren (stale-while-revalidate).
   event.respondWith(
-    caches.match(req).then((cached) => {
-      const network = fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
-          return res;
-        })
-        .catch(() => cached);
-      return cached || network;
-    })
+    fetch(req)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        return res;
+      })
+      .catch(() => caches.match(req).then((c) => c || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
   );
 });

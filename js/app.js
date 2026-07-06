@@ -82,7 +82,7 @@ function escapeHtml(s) {
 const appEl = document.getElementById('app');
 
 function render() {
-  if (!state.edition) state.edition = 'neu'; // 'neu' (alle Boni) oder 'alt' (ohne 14er-Boni)
+  if (!state.edition) state.edition = 'alt'; // Standard: 'alt' (ohne 14er-Boni); 'neu' = alle Boni
   saveState();
   appEl.innerHTML = '';
   appEl.appendChild(header());
@@ -518,7 +518,7 @@ function startLogoAnimator() {
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   logoAnimStarted = true;
 
-  const nextDelay = () => 8000 + Math.random() * 12000; // 8–20 Sekunden
+  const nextDelay = () => 5000; // Debug: alle 5 Sekunden (normal: 8000 + Math.random() * 12000)
 
   const tick = () => {
     const logo = document.querySelector('.app-header .logo');
