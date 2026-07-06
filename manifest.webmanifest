@@ -1,7 +1,7 @@
 {
-  "name": "Skull King Punktezähler",
-  "short_name": "Skull King",
-  "description": "Punktezähler für das Kartenspiel Skull King – für Android und iOS.",
+  "name": "ArrArr – Piraten ahoi",
+  "short_name": "ArrArr",
+  "description": "ArrArr – Piraten ahoi: Punktezähler für das Kartenspiel Skull King, für Android und iOS.",
   "lang": "de",
   "start_url": "./index.html",
   "scope": "./",

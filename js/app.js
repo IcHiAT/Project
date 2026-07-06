@@ -88,7 +88,7 @@ function render() {
   if (state.screen === 'setup') renderSetup();
   else if (state.screen === 'game') renderGame();
   else if (state.screen === 'results') renderResults();
-  appEl.appendChild(el('<p class="footer-note">Skull King Punktezähler · funktioniert offline · zum Homescreen hinzufügen</p>'));
+  appEl.appendChild(el('<p class="footer-note">ArrArr – Piraten ahoi · Skull-King-Punktezähler · funktioniert offline</p>'));
 }
 
 function header() {
@@ -96,8 +96,8 @@ function header() {
     <div class="app-header">
       <img src="icons/icon.svg" alt="" />
       <div>
-        <h1>Skull King</h1>
-        <div class="sub">Punktezähler</div>
+        <h1>ArrArr</h1>
+        <div class="sub">Piraten ahoi</div>
       </div>
       <div class="spacer"></div>
     </div>
