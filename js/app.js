@@ -96,7 +96,32 @@ function header() {
   const isOld = state.edition === 'alt';
   const h = el(`
     <div class="app-header">
-      <img src="icons/icon.svg" alt="" />
+      <svg class="logo" viewBox="0 0 512 512" aria-hidden="true">
+        <defs>
+          <linearGradient id="lg-bg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#163e6b"/><stop offset="1" stop-color="#0a1c30"/>
+          </linearGradient>
+          <linearGradient id="lg-gold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffdd66"/><stop offset="1" stop-color="#c9a227"/>
+          </linearGradient>
+        </defs>
+        <rect width="512" height="512" rx="112" fill="url(#lg-bg)"/>
+        <g class="logo-crown">
+          <path d="M150 168 L150 138 L196 172 L256 118 L316 172 L362 138 L362 168 L340 208 L172 208 Z" fill="url(#lg-gold)" stroke="#8a6d13" stroke-width="4" stroke-linejoin="round"/>
+          <circle cx="150" cy="132" r="12" fill="url(#lg-gold)"/>
+          <circle cx="256" cy="112" r="13" fill="url(#lg-gold)"/>
+          <circle cx="362" cy="132" r="12" fill="url(#lg-gold)"/>
+        </g>
+        <path d="M256 214 C186 214 150 262 150 314 C150 356 176 384 200 396 L200 428 C200 440 210 448 222 448 L290 448 C302 448 312 440 312 428 L312 396 C336 384 362 356 362 314 C362 262 326 214 256 214 Z" fill="#f4f8ff"/>
+        <ellipse class="logo-eye" cx="212" cy="318" rx="30" ry="34" fill="#0a1c30"/>
+        <ellipse cx="300" cy="318" rx="30" ry="34" fill="#0a1c30"/>
+        <path d="M256 342 L240 384 L272 384 Z" fill="#0a1c30"/>
+        <g fill="#0a1c30">
+          <rect x="222" y="416" width="14" height="24" rx="3"/>
+          <rect x="249" y="416" width="14" height="26" rx="3"/>
+          <rect x="276" y="416" width="14" height="24" rx="3"/>
+        </g>
+      </svg>
       <div>
         <h1>ArrArr</h1>
         <div class="sub">Piraten ahoi</div>
@@ -484,5 +509,31 @@ function renderResults() {
 
 /* ---------- Boot ---------- */
 
+/* ---------- Logo-Animation (zufällig alle 8–20 s) ---------- */
+
+let logoAnimStarted = false;
+function startLogoAnimator() {
+  if (logoAnimStarted) return;
+  // Nutzer, die Bewegung reduzieren möchten, bekommen keine Animation.
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  logoAnimStarted = true;
+
+  const nextDelay = () => 8000 + Math.random() * 12000; // 8–20 Sekunden
+
+  const tick = () => {
+    const logo = document.querySelector('.app-header .logo');
+    if (logo) {
+      const anim = Math.random() < 0.5 ? 'wink' : 'wobble'; // zwinkern oder Krone wackeln
+      logo.classList.remove('wink', 'wobble');
+      void logo.offsetWidth; // Reflow erzwingen, damit die Animation sicher neu startet
+      logo.classList.add(anim);
+      setTimeout(() => logo.classList.remove(anim), 1500);
+    }
+    setTimeout(tick, nextDelay());
+  };
+  setTimeout(tick, nextDelay());
+}
+
 // Falls ein altes Spiel im Ergebnis-Screen gespeichert war, direkt anzeigen.
 render();
+startLogoAnimator();
