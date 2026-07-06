@@ -82,7 +82,11 @@ function escapeHtml(s) {
 const appEl = document.getElementById('app');
 
 function render() {
-  if (!state.edition) state.edition = 'alt'; // Standard: 'alt' (ohne 14er-Boni); 'neu' = alle Boni
+  // Standard ist die alte Version. Einmalige Umstellung, damit auch bereits
+  // gespeicherte Spielstände (die evtl. noch 'neu' hatten) auf 'alt' starten.
+  // Danach bleibt die eigene Wahl über den Umschalter erhalten.
+  if (!state.editionDefaulted) { state.edition = 'alt'; state.editionDefaulted = true; }
+  if (!state.edition) state.edition = 'alt';
   saveState();
   appEl.innerHTML = '';
   appEl.appendChild(header());
