@@ -195,9 +195,21 @@ function startGame() {
 
 /* ---------- Game screen ---------- */
 
+// Bonuspunkte aus den gefangenen Karten berechnen.
+function calcBonus(d) {
+  return 10 * (d.c14 || 0) + 20 * (d.b14 || 0) + 30 * (d.pirates || 0) + 50 * (d.mermaid || 0);
+}
+
+function emptyDraft() {
+  return { bid: 0, tricks: 0, c14: 0, b14: 0, pirates: 0, mermaid: 0 };
+}
+
 function getDraft(playerId) {
-  if (!state.draft[playerId]) state.draft[playerId] = { bid: 0, tricks: 0, bonus: 0 };
-  return state.draft[playerId];
+  if (!state.draft[playerId]) state.draft[playerId] = emptyDraft();
+  const d = state.draft[playerId];
+  // Absicherung, falls ein älterer Spielstand ohne Bonus-Details geladen wurde.
+  if (d.c14 === undefined) { d.c14 = 0; d.b14 = 0; d.pirates = 0; d.mermaid = 0; }
+  return d;
 }
 
 function renderGame() {
@@ -214,6 +226,8 @@ function renderGame() {
 
   if (state.gameTab === 'board') { renderBoard(); return; }
 
+  if (!state.bonusOpen) state.bonusOpen = {}; // welche Bonus-Bereiche sind aufgeklappt
+
   // Rundenkopf
   const bar = el(`
     <div class="round-bar">
@@ -229,6 +243,36 @@ function renderGame() {
     const d = getDraft(p.id);
     d.bid = clamp(d.bid, 0, maxTricks);
     d.tricks = clamp(d.tricks, 0, maxTricks);
+    const bonus = calcBonus(d);
+    const open = !!state.bonusOpen[p.id];
+
+    const detailHtml = open ? `
+      <div class="bonus-detail">
+        <div class="brow">
+          <span class="blabel">Farbige 14 gefangen<em>je +10</em></span>
+          <div class="stepper mini">
+            <button data-act="c14-" aria-label="Farbige 14 weniger">−</button>
+            <span class="val">${d.c14}</span>
+            <button data-act="c14+" aria-label="Farbige 14 mehr">+</button>
+          </div>
+        </div>
+        <div class="brow">
+          <span class="blabel">Schwarze 14 · Jolly Roger<em>+20</em></span>
+          <button class="toggle ${d.b14 ? 'on' : ''}" data-act="b14">${d.b14 ? 'Ja' : 'Nein'}</button>
+        </div>
+        <div class="brow">
+          <span class="blabel">Skull King fängt Pirat<em>je +30</em></span>
+          <div class="stepper mini">
+            <button data-act="pir-" aria-label="Piraten weniger">−</button>
+            <span class="val">${d.pirates}</span>
+            <button data-act="pir+" aria-label="Piraten mehr">+</button>
+          </div>
+        </div>
+        <div class="brow">
+          <span class="blabel">Meerjungfrau fängt Skull King<em>+50</em></span>
+          <button class="toggle ${d.mermaid ? 'on' : ''}" data-act="mer">${d.mermaid ? 'Ja' : 'Nein'}</button>
+        </div>
+      </div>` : '';
 
     const entry = el(`
       <div class="entry">
@@ -236,7 +280,7 @@ function renderGame() {
           <span class="entry-name">${escapeHtml(playerName(p, idx))}</span>
           <span class="entry-total">Gesamt: <b>${totalFor(p.id)}</b></span>
         </div>
-        <div class="fields">
+        <div class="fields two">
           <div class="field">
             <label>Gebot</label>
             <div class="stepper">
@@ -253,25 +297,32 @@ function renderGame() {
               <button data-act="tr+" aria-label="Stiche +">+</button>
             </div>
           </div>
-          <div class="field">
-            <label>Bonus</label>
-            <div class="stepper">
-              <button data-act="bo-" aria-label="Bonus -">−</button>
-              <span class="val bonus">${d.bonus}</span>
-              <button data-act="bo+" aria-label="Bonus +">+</button>
-            </div>
-          </div>
         </div>
+        <button class="bonus-summary ${open ? 'open' : ''}" data-act="bonus-toggle">
+          <span class="bchip">🏴‍☠️ Bonus</span>
+          <span class="bval">+${bonus}</span>
+          <span class="bhint">${open ? 'zuklappen' : 'Fänge eintragen'}</span>
+          <span class="bcaret">${open ? '▾' : '▸'}</span>
+        </button>
+        ${detailHtml}
       </div>
     `);
 
-    const bind = (sel, fn) => entry.querySelector(sel).addEventListener('click', () => { fn(); render(); });
+    const bind = (sel, fn) => {
+      const btn = entry.querySelector(sel);
+      if (btn) btn.addEventListener('click', () => { fn(); render(); });
+    };
     bind('[data-act="bid-"]', () => d.bid = clamp(d.bid - 1, 0, maxTricks));
     bind('[data-act="bid+"]', () => d.bid = clamp(d.bid + 1, 0, maxTricks));
     bind('[data-act="tr-"]', () => d.tricks = clamp(d.tricks - 1, 0, maxTricks));
     bind('[data-act="tr+"]', () => d.tricks = clamp(d.tricks + 1, 0, maxTricks));
-    bind('[data-act="bo-"]', () => d.bonus = clamp(d.bonus - 10, 0, 500));
-    bind('[data-act="bo+"]', () => d.bonus = clamp(d.bonus + 10, 0, 500));
+    bind('[data-act="bonus-toggle"]', () => { state.bonusOpen[p.id] = !state.bonusOpen[p.id]; });
+    bind('[data-act="c14-"]', () => d.c14 = clamp(d.c14 - 1, 0, 3));
+    bind('[data-act="c14+"]', () => d.c14 = clamp(d.c14 + 1, 0, 3));
+    bind('[data-act="b14"]', () => d.b14 = d.b14 ? 0 : 1);
+    bind('[data-act="pir-"]', () => d.pirates = clamp(d.pirates - 1, 0, 5));
+    bind('[data-act="pir+"]', () => d.pirates = clamp(d.pirates + 1, 0, 5));
+    bind('[data-act="mer"]', () => d.mermaid = d.mermaid ? 0 : 1);
 
     appEl.appendChild(entry);
   });
@@ -309,7 +360,10 @@ function completeRound() {
   state.players.forEach((p) => {
     const d = getDraft(p.id);
     if (!state.scores[p.id]) state.scores[p.id] = [];
-    state.scores[p.id][state.currentRound - 1] = { bid: d.bid, tricks: d.tricks, bonus: d.bonus };
+    state.scores[p.id][state.currentRound - 1] = {
+      bid: d.bid, tricks: d.tricks, bonus: calcBonus(d),
+      c14: d.c14, b14: d.b14, pirates: d.pirates, mermaid: d.mermaid,
+    };
   });
   state.draft = {};
   if (state.currentRound >= state.totalRounds) {
@@ -329,7 +383,7 @@ function undoRound() {
   state.players.forEach((p) => {
     const arr = state.scores[p.id] || [];
     const prev = arr[state.currentRound - 1];
-    state.draft[p.id] = prev ? { ...prev } : { bid: 0, tricks: 0, bonus: 0 };
+    state.draft[p.id] = prev ? { ...emptyDraft(), ...prev } : emptyDraft();
     arr.splice(state.currentRound - 1, 1); // abgeschlossene Runde entfernen, damit sie neu eingegeben werden kann
     state.scores[p.id] = arr;
   });
