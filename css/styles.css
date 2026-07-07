@@ -1,19 +1,39 @@
-/* Skull King Punktezähler – mobile-first Design */
+/* Skull King Punktezähler – mobile-first Design (Dunkel- & Hellmodus) */
 :root {
-  --navy: #0b1e33;
-  --navy-2: #10294a;
-  --card: #14304f;
-  --card-2: #1b3c63;
-  --gold: #f4c430;
-  --gold-dim: #c9a227;
-  --teal: #2dd4bf;
-  --red: #ff6b6b;
-  --green: #46d17f;
+  /* Hintergrund-Verlauf (oben -> unten) */
+  --bg-1: #12365f; --bg-2: #0b1e33; --bg-3: #071527;
+  --navy: #0b1e33;               /* Textfarbe auf goldenen Flächen (in beiden Modi dunkel) */
+  --card: #14304f; --card-2: #1b3c63;
   --text: #eaf1fb;
   --muted: #93a7c2;
   --line: rgba(255, 255, 255, 0.1);
+  --surface: rgba(255, 255, 255, 0.06);   /* leicht erhabene Flächen (Buttons, Stepper, Tabs) */
+  --well: rgba(0, 0, 0, 0.2);              /* vertiefte Flächen (Eingaben, Zeilen) */
+  --gold: #f4c430; --gold-dim: #c9a227;    /* Akzent / Buttons */
+  --gold-text: #f4c430;                    /* Gold als Textfarbe (kontraststark je Modus) */
+  --teal: #2dd4bf; --teal-text: #2dd4bf;
+  --green: #46d17f; --green-text: #46d17f;
+  --red: #ff6b6b; --red-text: #ff6b6b;
+  --dialog-bg: #10294a;
   --radius: 14px;
   --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="light"] {
+  --bg-1: #f7fafe; --bg-2: #e8f0fa; --bg-3: #d7e5f4;
+  --card: #f4f8ff; --card-2: #ffffff;
+  --text: #12263f;
+  --muted: #566a83;
+  --line: rgba(16, 40, 74, 0.14);
+  --surface: rgba(16, 40, 74, 0.05);
+  --well: rgba(16, 40, 74, 0.035);
+  --gold: #f4c430; --gold-dim: #d9a521;
+  --gold-text: #916500;
+  --teal: #14b8a6; --teal-text: #0d8f80;
+  --green: #16a34a; --green-text: #15803d;
+  --red: #e5484d; --red-text: #cf3438;
+  --dialog-bg: #ffffff;
+  --shadow: 0 6px 20px rgba(16, 40, 74, 0.14);
 }
 
 * { box-sizing: border-box; }
@@ -21,7 +41,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: radial-gradient(120% 100% at 50% 0%, #12365f 0%, var(--navy) 55%, #071527 100%);
+  background: radial-gradient(120% 100% at 50% 0%, var(--bg-1) 0%, var(--bg-2) 55%, var(--bg-3) 100%);
   background-attachment: fixed;
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -40,7 +60,8 @@ html, body {
 .app-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;           /* auf schmalen Geräten dürfen die Buttons umbrechen */
+  gap: 10px;
   padding: 8px 0 18px;
 }
 .app-header img { width: 44px; height: 44px; }
@@ -75,20 +96,33 @@ html, body {
   letter-spacing: 0.3px;
 }
 .app-header .sub { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
-.spacer { flex: 1; }
 
-/* Umschalter Neue/Alte Spielversion (oben rechts) */
+/* Button-Gruppe rechts (Theme + Version) */
+.header-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+/* Hell-/Dunkel-Umschalter */
+.theme-toggle {
+  flex: 0 0 auto;
+  width: 38px; height: 38px; border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer; font-size: 1.05rem; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+/* Umschalter Neue/Alte Spielversion */
 .version-toggle {
   flex: 0 0 auto;
   display: inline-flex; align-items: center; gap: 7px;
-  padding: 7px 13px; border-radius: 999px;
+  padding: 8px 13px; border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface);
+  color: var(--text);
   font-size: 0.78rem; font-weight: 700; cursor: pointer;
   white-space: nowrap;
 }
 .version-toggle .vdot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
-.version-toggle.neu { color: var(--green); border-color: rgba(70, 209, 127, 0.45); background: rgba(70, 209, 127, 0.12); }
+.version-toggle.neu { color: var(--green-text); border-color: rgba(70, 209, 127, 0.45); background: rgba(70, 209, 127, 0.12); }
 .version-toggle.alt { color: var(--muted); }
 
 /* --- Cards & panels --- */
@@ -126,12 +160,12 @@ html, body {
   font-weight: 600;
 }
 .btn.ghost {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--surface);
   color: var(--text);
   box-shadow: none;
   font-weight: 600;
 }
-.btn.danger { background: transparent; color: var(--red); border: 1px solid rgba(255, 107, 107, 0.4); box-shadow: none; }
+.btn.danger { background: transparent; color: var(--red-text); border: 1px solid rgba(255, 107, 107, 0.4); box-shadow: none; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-row { display: flex; gap: 10px; margin-top: 10px; }
 .btn-row .btn { width: auto; flex: 1; }
@@ -148,13 +182,13 @@ html, body {
   display: grid; place-items: center;
   border-radius: 50%;
   background: rgba(244, 196, 48, 0.15);
-  color: var(--gold);
+  color: var(--gold-text);
   font-weight: 700; font-size: 0.85rem;
 }
 input[type="text"] {
   flex: 1;
   min-width: 0; /* darf schrumpfen, damit die Zeile nie überläuft */
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--well);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 12px 14px;
@@ -166,7 +200,7 @@ input[type="text"]:focus { outline: 2px solid var(--gold-dim); }
   width: 38px; height: 38px; flex: none;
   border-radius: 10px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface);
   color: var(--muted);
   font-size: 1.2rem; cursor: pointer;
 }
@@ -180,13 +214,13 @@ input[type="text"]:focus { outline: 2px solid var(--gold-dim); }
 .round-bar .round-num small { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
 .round-bar .cards {
   background: rgba(45, 212, 191, 0.14);
-  color: var(--teal);
+  color: var(--teal-text);
   border-radius: 999px; padding: 6px 12px; font-size: 0.8rem; font-weight: 700;
 }
 
 /* --- Entry rows --- */
 .entry {
-  background: rgba(0, 0, 0, 0.18);
+  background: var(--well);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 12px;
@@ -195,7 +229,7 @@ input[type="text"]:focus { outline: 2px solid var(--gold-dim); }
 .entry-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .entry-name { font-weight: 700; font-size: 1.02rem; }
 .entry-total { color: var(--muted); font-size: 0.82rem; }
-.entry-total b { color: var(--gold); font-size: 1rem; }
+.entry-total b { color: var(--gold-text); font-size: 1rem; }
 
 .fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .field { text-align: center; min-width: 0; }
@@ -206,14 +240,14 @@ input[type="text"]:focus { outline: 2px solid var(--gold-dim); }
   width: clamp(30px, 9vw, 36px); height: clamp(30px, 9vw, 36px); flex: 0 0 auto;
   border-radius: 9px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--surface);
   color: var(--text);
   font-size: 1.2rem; font-weight: 700; cursor: pointer;
   line-height: 1; padding: 0;
 }
 .stepper button:active { background: rgba(244, 196, 48, 0.2); }
 .stepper .val { flex: 1 1 auto; min-width: 0; text-align: center; font-size: clamp(1rem, 4.4vw, 1.15rem); font-weight: 800; font-variant-numeric: tabular-nums; }
-.stepper .val.bonus { color: var(--teal); }
+.stepper .val.bonus { color: var(--teal-text); }
 
 /* zwei Spalten (Gebot/Stiche) – etwas breiter, da Bonus jetzt eigener Bereich ist */
 .fields.two { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -227,7 +261,7 @@ input[type="text"]:focus { outline: 2px solid var(--gold-dim); }
   color: var(--text); cursor: pointer; font: inherit; text-align: left;
 }
 .bonus-summary .bchip { font-size: 0.78rem; font-weight: 700; }
-.bonus-summary .bval { font-weight: 800; color: var(--teal); font-variant-numeric: tabular-nums; }
+.bonus-summary .bval { font-weight: 800; color: var(--teal-text); font-variant-numeric: tabular-nums; }
 .bonus-summary .bhint { margin-left: auto; font-size: 0.74rem; color: var(--muted); }
 .bonus-summary .bcaret { color: var(--muted); font-size: 0.8rem; }
 .bonus-summary.open { background: rgba(45, 212, 191, 0.14); border-color: rgba(45, 212, 191, 0.4); }
@@ -245,14 +279,14 @@ input[type="text"]:focus { outline: 2px solid var(--gold-dim); }
 
 .toggle {
   flex: 0 0 auto; min-width: 60px; padding: 8px 14px; border-radius: 9px;
-  border: 1px solid var(--line); background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line); background: var(--surface);
   color: var(--muted); font-weight: 700; cursor: pointer; font-size: 0.88rem;
 }
 .toggle.on { background: linear-gradient(180deg, var(--gold), var(--gold-dim)); color: var(--navy); border-color: var(--gold-dim); }
 
 .hint { font-size: 0.78rem; color: var(--muted); margin: 6px 2px 0; }
-.hint.warn { color: var(--gold); }
-.link { color: var(--teal); background: none; border: none; cursor: pointer; font-size: 0.78rem; padding: 0; text-decoration: underline; }
+.hint.warn { color: var(--gold-text); }
+.link { color: var(--teal-text); background: none; border: none; cursor: pointer; font-size: 0.78rem; padding: 0; text-decoration: underline; }
 
 /* --- Scoreboard table --- */
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -261,27 +295,27 @@ table.board th, table.board td { padding: 8px 10px; text-align: center; white-sp
 table.board thead th { color: var(--muted); font-weight: 600; font-size: 0.75rem; position: sticky; top: 0; }
 table.board th.rowhead, table.board td.rowhead { text-align: left; color: var(--muted); }
 table.board td.pts { font-weight: 700; }
-table.board td.pos { color: var(--green); }
-table.board td.neg { color: var(--red); }
+table.board td.pos { color: var(--green-text); }
+table.board td.neg { color: var(--red-text); }
 table.board tr.total-row td { border-top: 2px solid var(--gold-dim); font-weight: 800; font-size: 0.95rem; }
-table.board tr.total-row td.name { color: var(--gold); }
+table.board tr.total-row td.name { color: var(--gold-text); }
 
 /* --- Ranking / results --- */
-.rank { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.18); border: 1px solid var(--line); margin-bottom: 10px; }
+.rank { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; background: var(--well); border: 1px solid var(--line); margin-bottom: 10px; }
 .rank.first { background: linear-gradient(180deg, rgba(244,196,48,0.22), rgba(244,196,48,0.07)); border-color: var(--gold-dim); }
 .rank .medal { font-size: 1.6rem; width: 34px; text-align: center; }
 .rank .rname { font-weight: 700; flex: 1; font-size: 1.05rem; }
-.rank .rscore { font-weight: 800; font-size: 1.2rem; color: var(--gold); }
+.rank .rscore { font-weight: 800; font-size: 1.2rem; color: var(--gold-text); }
 
 /* --- Tabs --- */
 .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
 .tabs button {
   flex: 1; padding: 10px; border-radius: 10px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,0.04);
+  background: var(--surface);
   color: var(--muted); font-weight: 700; cursor: pointer; font-size: 0.9rem;
 }
-.tabs button.active { background: rgba(244,196,48,0.16); color: var(--gold); border-color: var(--gold-dim); }
+.tabs button.active { background: rgba(244,196,48,0.16); color: var(--gold-text); border-color: var(--gold-dim); }
 
 .muted { color: var(--muted); }
 .center { text-align: center; }
@@ -290,7 +324,7 @@ table.board tr.total-row td.name { color: var(--gold); }
 dialog {
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--navy-2);
+  background: var(--dialog-bg);
   color: var(--text);
   max-width: 340px;
   padding: 20px;

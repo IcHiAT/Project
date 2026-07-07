@@ -81,12 +81,21 @@ function escapeHtml(s) {
 
 const appEl = document.getElementById('app');
 
+function applyTheme() {
+  const light = state.theme === 'light';
+  document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', light ? '#f7fafe' : '#0b1e33');
+}
+
 function render() {
   // Standard ist die alte Version. Einmalige Umstellung, damit auch bereits
   // gespeicherte Spielstände (die evtl. noch 'neu' hatten) auf 'alt' starten.
   // Danach bleibt die eigene Wahl über den Umschalter erhalten.
   if (!state.editionDefaulted) { state.edition = 'alt'; state.editionDefaulted = true; }
   if (!state.edition) state.edition = 'alt';
+  if (!state.theme) state.theme = 'dark'; // 'dark' (Standard) oder 'light'
+  applyTheme();
   saveState();
   appEl.innerHTML = '';
   appEl.appendChild(header());
@@ -130,12 +139,18 @@ function header() {
         <h1>ArrArr</h1>
         <div class="sub">Piraten ahoi</div>
       </div>
-      <div class="spacer"></div>
-      <button class="version-toggle ${isOld ? 'alt' : 'neu'}" aria-label="Spielversion umschalten">
-        <span class="vdot"></span>${isOld ? 'Alte Version' : 'Neue Version'}
-      </button>
+      <div class="header-tools">
+        <button class="theme-toggle" aria-label="Hell- oder Dunkelmodus umschalten">${state.theme === 'light' ? '🌙' : '☀️'}</button>
+        <button class="version-toggle ${isOld ? 'alt' : 'neu'}" aria-label="Spielversion umschalten">
+          <span class="vdot"></span>${isOld ? 'Alte Version' : 'Neue Version'}
+        </button>
+      </div>
     </div>
   `);
+  h.querySelector('.theme-toggle').addEventListener('click', () => {
+    state.theme = state.theme === 'light' ? 'dark' : 'light';
+    render();
+  });
   h.querySelector('.version-toggle').addEventListener('click', () => {
     state.edition = state.edition === 'alt' ? 'neu' : 'alt';
     render();
