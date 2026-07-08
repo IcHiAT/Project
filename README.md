@@ -1,4 +1,6 @@
-# Skull King – Punktezähler 🏴‍☠️👑
+# ArrArr – Piraten ahoi 🏴‍☠️👑
+
+Live: **https://ichiat.github.io/Project/pirate/**
 
 Eine App, die die Punkte für das Kartenspiel **Skull King** zählt – für **Android und iOS**.
 
@@ -34,11 +36,12 @@ Meerjungfrau fängt Skull King +50.
 ## Lokal starten
 
 ```bash
-npm start        # startet http://localhost:8080
+npm start        # startet http://localhost:8080/pirate/
 npm test         # führt die Tests der Punktelogik aus
 ```
 
-Alternativ jeden beliebigen statischen Webserver auf den Projektordner zeigen lassen.
+Alternativ jeden beliebigen statischen Webserver auf den Projektordner zeigen lassen
+und `/pirate/` aufrufen.
 
 ## Auf dem Handy installieren (PWA)
 
@@ -63,13 +66,14 @@ npx cap open android     # bzw. npx cap open ios
 ## Projektstruktur
 
 ```
-index.html              App-Shell
-css/styles.css          Design (dunkles, maritimes Theme)
-js/scoring.js           Punktelogik (getestet, ohne UI)
-js/app.js               Oberfläche & Spielablauf
-manifest.webmanifest    PWA-Manifest
-sw.js                   Service Worker (Offline-Cache)
-icons/                  App-Icons (SVG + PNG)
-test/scoring.test.js    Tests der Punktelogik
-serve.js                Lokaler Testserver
+index.html                    Weiterleitung von der Domain-Wurzel nach ./pirate/
+pirate/index.html              App-Shell
+pirate/css/styles.css          Design (Hell-/Dunkelmodus)
+pirate/js/scoring.js           Punktelogik (getestet, ohne UI)
+pirate/js/app.js               Oberfläche & Spielablauf
+pirate/manifest.webmanifest    PWA-Manifest
+pirate/sw.js                   Service Worker (Offline-Cache)
+pirate/icons/                  App-Icons (SVG + PNG)
+test/scoring.test.js          Tests der Punktelogik (gegen pirate/js/scoring.js)
+serve.js                      Lokaler Testserver
 ```

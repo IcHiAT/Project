@@ -2,7 +2,7 @@
 'use strict';
 
 const assert = require('assert');
-const { scoreRound, bidMade } = require('../js/scoring.js');
+const { scoreRound, bidMade } = require('../pirate/js/scoring.js');
 
 let passed = 0;
 let failed = 0;

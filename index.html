@@ -1,51 +1,23 @@
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0b1e33" />
-<meta name="description" content="ArrArr – Piraten ahoi: Punktezähler für das Kartenspiel Skull King, für Android und iOS." />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>ArrArr – Piraten ahoi</title>
+<meta http-equiv="refresh" content="1; url=./pirate/" />
 
-<link rel="manifest" href="manifest.webmanifest" />
-<link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="ArrArr" />
-<link rel="stylesheet" href="css/styles.css" />
+<p>Weiterleitung zu <a href="./pirate/">ArrArr – Piraten ahoi</a> …</p>
 
-<div id="app" aria-live="polite"></div>
-
-<!-- Dialog für Bonus-Erklärung -->
-<dialog id="bonus-info">
-  <h2>Bonuspunkte</h2>
-  <p>Bonuspunkte zählen nur, wenn das Gebot <strong>genau</strong> erfüllt wurde.</p>
-  <ul>
-    <li>Jede gefangene farbige <strong>14</strong>: +10</li>
-    <li>Schwarze <strong>14</strong> (Jolly Roger): +20</li>
-    <li>Skull King fängt einen Piraten: +30 je Pirat</li>
-    <li>Meerjungfrau fängt den Skull King: +50</li>
-  </ul>
-  <p class="muted">Trage die Summe der Bonuspunkte pro Runde ein (Schritte à 10).</p>
-  <form method="dialog"><button class="btn">Verstanden</button></form>
-</dialog>
-
-<script src="js/scoring.js"></script>
-<script src="js/app.js"></script>
 <script>
+  // Die App ist nach ./pirate/ umgezogen. Einen evtl. hier noch aktiven
+  // alten Service Worker abmelden, damit er diese Seite nicht aus dem
+  // Cache bedient, dann weiterleiten.
+  function goPirate() { location.replace('./pirate/'); }
   if ('serviceWorker' in navigator) {
-    // Wenn ein neuer Service Worker die Kontrolle übernimmt, einmalig neu laden,
-    // damit sofort die aktuelle Version läuft (nicht beim allerersten Installieren).
-    const hadController = !!navigator.serviceWorker.controller;
-    let reloaded = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!hadController || reloaded) return;
-      reloaded = true;
-      window.location.reload();
-    });
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').then((reg) => {
-        reg.update();
-        setInterval(() => reg.update(), 60000); // regelmäßig auf Updates prüfen
-      }).catch(() => {});
-    });
+    navigator.serviceWorker.getRegistrations()
+      .then((regs) => Promise.all(
+        regs.filter((r) => !r.scope.includes('/pirate')).map((r) => r.unregister())
+      ))
+      .catch(() => {})
+      .then(goPirate);
+  } else {
+    goPirate();
   }
 </script>

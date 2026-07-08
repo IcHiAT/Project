@@ -14,7 +14,7 @@ const MIME = {
 
 http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
-  if (p === '/') p = '/index.html';
+  if (p.endsWith('/')) p += 'index.html'; // z. B. '/' oder '/pirate/' -> jeweiliges index.html
   const fp = normalize(join(ROOT, p));
   if (!fp.startsWith(ROOT) || !existsSync(fp) || statSync(fp).isDirectory()) {
     res.writeHead(404); return res.end('Not found');
