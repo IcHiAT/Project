@@ -1,0 +1,17 @@
+{
+  "name": "skull-king-online",
+  "version": "1.0.0",
+  "description": "Skull King als Web-Multiplayer-Spiel - spiele gegen Bots oder mit Freunden per Link.",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
