@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skull King - Kartenspiel</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Start Screen -->
+    <div id="screen-start" class="screen active">
+      <div class="start-container">
+        <div class="start-header">
+          <h1>💀👑 Skull King</h1>
+          <p class="subtitle">Das Piraten-Kartenspiel</p>
+        </div>
+
+        <div class="start-tabs">
+          <button class="tab-btn active" data-tab="create">Neuen Raum</button>
+          <button class="tab-btn" data-tab="join">Beitreten</button>
+        </div>
+
+        <!-- Create Room Tab -->
+        <div class="tab-content active" id="tab-create">
+          <div class="form-group">
+            <label for="create-name">Dein Name</label>
+            <input type="text" id="create-name" placeholder="z.B. Jack Sparrow" maxlength="20">
+          </div>
+
+          <div class="form-group">
+            <label>Spielversion</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="edition" value="old" checked>
+                <span>Alte Version (Klassisch)</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="edition" value="new">
+                <span>Neue Version (Tigress)</span>
+              </label>
+            </div>
+          </div>
+
+          <button id="btn-create-room" class="btn btn-primary">Raum erstellen</button>
+        </div>
+
+        <!-- Join Room Tab -->
+        <div class="tab-content" id="tab-join">
+          <div class="form-group">
+            <label for="join-name">Dein Name</label>
+            <input type="text" id="join-name" placeholder="z.B. Jack Sparrow" maxlength="20">
+          </div>
+
+          <div class="form-group">
+            <label for="join-code">Raum-Code</label>
+            <input type="text" id="join-code" placeholder="z.B. AB3D" maxlength="4">
+          </div>
+
+          <button id="btn-join-room" class="btn btn-primary">Beitreten</button>
+        </div>
+
+        <div id="error-message" class="error-banner" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Lobby Screen -->
+    <div id="screen-lobby" class="screen">
+      <div class="lobby-container">
+        <div class="lobby-header">
+          <div>
+            <h2>Lobby</h2>
+            <p class="room-code">Raum: <strong id="room-code-display">-</strong></p>
+          </div>
+          <div class="connection-status" id="connection-status" title="Verbindungsstatus">●</div>
+        </div>
+
+        <div class="share-section">
+          <p class="share-link-label">Einladungslink:</p>
+          <div class="share-link-container">
+            <input type="text" id="share-link" class="share-link" readonly>
+            <button id="btn-copy-link" class="btn btn-small">Link kopieren</button>
+          </div>
+        </div>
+
+        <div class="lobby-content">
+          <div class="players-section">
+            <h3>Spieler</h3>
+            <div id="players-list" class="players-list"></div>
+          </div>
+
+          <div class="controls-section">
+            <div class="edition-control">
+              <label for="edition-select">Spielversion</label>
+              <select id="edition-select">
+                <option value="old">Alte Version (Klassisch)</option>
+                <option value="new">Neue Version (Tigress)</option>
+              </select>
+            </div>
+
+            <button id="btn-add-bot" class="btn btn-secondary">Bot hinzufügen</button>
+            <button id="btn-start-game" class="btn btn-primary">Spiel starten</button>
+            <button id="btn-leave-lobby" class="btn btn-danger">Raum verlassen</button>
+          </div>
+        </div>
+
+        <div id="error-message-lobby" class="error-banner" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="screen-game" class="screen">
+      <div class="game-container">
+        <div class="game-header">
+          <div class="game-info">
+            <h2>Runde <span id="round-number">-</span> / <span id="max-rounds">-</span></h2>
+            <p id="phase-info"></p>
+          </div>
+          <div class="connection-status" id="connection-status-game" title="Verbindungsstatus">●</div>
+        </div>
+
+        <div class="game-content">
+          <!-- Left: Log -->
+          <div class="game-left">
+            <div class="log-section">
+              <h3>Ereignisse</h3>
+              <div id="game-log" class="game-log"></div>
+            </div>
+          </div>
+
+          <!-- Center: Play area -->
+          <div class="game-center">
+            <!-- Trick display -->
+            <div id="trick-section" class="trick-section">
+              <h3>Aktueller Stich</h3>
+              <div id="trick-plays" class="trick-plays"></div>
+            </div>
+
+            <!-- Hand -->
+            <div id="hand-section" class="hand-section">
+              <h3>Deine Hand</h3>
+              <div id="my-hand" class="hand-cards"></div>
+            </div>
+
+            <!-- Bidding phase -->
+            <div id="bidding-section" class="bidding-section" style="display: none;">
+              <h3>Ansage</h3>
+              <p id="bidding-prompt"></p>
+              <div id="bid-buttons" class="bid-buttons"></div>
+              <input type="number" id="bid-input" class="bid-input" min="0" max="10" style="display: none;">
+              <button id="btn-confirm-bid" class="btn btn-primary" style="display: none;">Bestätigen</button>
+            </div>
+
+            <!-- Tigress choice -->
+            <div id="tigress-modal" class="modal" style="display: none;">
+              <div class="modal-content">
+                <h3>Tigress-Wahl</h3>
+                <p>Wähle, als was die Tigress spielen soll:</p>
+                <div class="tigress-buttons">
+                  <button class="btn btn-large" data-choice="pirate">🏴‍☠️ Als Pirat</button>
+                  <button class="btn btn-large" data-choice="escape">🏃 Als Flucht</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Scoreboard -->
+          <div class="game-right">
+            <div class="scoreboard-section">
+              <h3>Punkte</h3>
+              <div id="scoreboard" class="scoreboard"></div>
+            </div>
+
+            <div class="players-info-section">
+              <h3>Spieler</h3>
+              <div id="players-info" class="players-info"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Round end / Game end -->
+        <div id="round-end-section" class="round-end-section" style="display: none;">
+          <div class="modal-overlay">
+            <div class="round-end-modal">
+              <h3>Runde vorbei</h3>
+              <div id="round-scores" class="round-scores"></div>
+              <button id="btn-continue-round" class="btn btn-primary">Weiter</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="game-end-section" class="game-end-section" style="display: none;">
+          <div class="modal-overlay">
+            <div class="game-end-modal">
+              <h3>Spiel vorbei!</h3>
+              <div id="final-standings" class="final-standings"></div>
+              <button id="btn-new-game" class="btn btn-primary">Neues Spiel</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="error-message-game" class="error-banner" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
