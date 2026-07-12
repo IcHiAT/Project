@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+/*
+ * Design-Tokens für zwei Entwurfs-Varianten (siehe /entwurf-a und /entwurf-b).
+ * Beide Varianten bleiben bewusst in der Grün/Anthrazit-Familie, unterscheiden
+ * sich aber in Temperatur, Radius und Headline-Schrift. Nach dem "Go" wird nur
+ * eine Variante als Standard-Theme übernommen und dieser Umschalt-Mechanismus
+ * kann vereinfacht werden.
+ */
+
+:root,
+[data-theme="a"] {
+  --elou-canvas: #f6f7f6;
+  --elou-canvas-soft: #eef1ef;
+  --elou-surface: #ffffff;
+  --elou-ink: #1b211e;
+  --elou-ink-soft: #57625c;
+  --elou-brand: #1c6b47;
+  --elou-brand-soft: #e6efe9;
+  --elou-brand-contrast: #ffffff;
+  --elou-dark: #101917;
+  --elou-line: #dee3e0;
+  --elou-radius-card: 0.5rem;
+  --elou-radius-pill: 999px;
+  --elou-font-heading: var(--font-space-grotesk);
+  --elou-font-body: var(--font-inter);
+}
+
+[data-theme="b"] {
+  --elou-canvas: #faf8f4;
+  --elou-canvas-soft: #f2ece0;
+  --elou-surface: #ffffff;
+  --elou-ink: #22241f;
+  --elou-ink-soft: #6a6659;
+  --elou-brand: #2b5c46;
+  --elou-brand-soft: #e9ede4;
+  --elou-brand-contrast: #ffffff;
+  --elou-dark: #14251d;
+  --elou-line: #e7e1d3;
+  --elou-radius-card: 1.25rem;
+  --elou-radius-pill: 999px;
+  --elou-font-heading: var(--font-source-serif);
+  --elou-font-body: var(--font-inter);
+}
+
+@theme inline {
+  --color-canvas: var(--elou-canvas);
+  --color-canvas-soft: var(--elou-canvas-soft);
+  --color-surface: var(--elou-surface);
+  --color-ink: var(--elou-ink);
+  --color-ink-soft: var(--elou-ink-soft);
+  --color-brand: var(--elou-brand);
+  --color-brand-soft: var(--elou-brand-soft);
+  --color-brand-contrast: var(--elou-brand-contrast);
+  --color-dark: var(--elou-dark);
+  --color-line: var(--elou-line);
+  --radius-card: var(--elou-radius-card);
+  --radius-pill: var(--elou-radius-pill);
+  --font-heading: var(--elou-font-heading);
+  --font-body: var(--elou-font-body);
+}
+
+body {
+  background: var(--elou-canvas);
+  color: var(--elou-ink);
+  font-family: var(--elou-font-body), Arial, Helvetica, sans-serif;
+}
