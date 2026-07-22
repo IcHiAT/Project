@@ -457,33 +457,47 @@ function confirmReset() {
 
 function renderBoard() {
   const maxDone = state.players.reduce((m, p) => Math.max(m, (state.scores[p.id] || []).filter(Boolean).length), 0);
+  const n = state.players.length;
+
+  // Bei vielen Spieler*innen wird die Tafel kompakter, damit möglichst wenig
+  // (oder gar nicht) seitlich gescrollt werden muss. Die Labels der ersten
+  // Spalte werden dabei gekürzt, damit sie nie in die Nachbarspalte laufen.
+  const sizeClass = n >= 7 ? 'tiny' : n >= 5 ? 'compact' : '';
+  const roundLabel = sizeClass ? 'Rd.' : 'Runde';
+  const totalLabel = sizeClass ? 'Σ' : 'Ges.';
+
+  // Aktuell führende(n) Spieler*in ermitteln (nur wenn schon mindestens eine Runde steht).
+  const totals = state.players.map((p) => totalFor(p.id));
+  const maxTotal = maxDone > 0 ? Math.max(...totals) : null;
+  const isLeader = (i) => maxTotal !== null && totals[i] === maxTotal;
 
   const wrap = el('<div class="panel"><div class="table-wrap"></div></div>');
-  const table = el('<table class="board"></table>');
+  const table = el(`<table class="board ${sizeClass}"></table>`);
 
   // Kopf
-  let head = '<thead><tr><th class="rowhead">Runde</th>';
-  state.players.forEach((p, i) => { head += `<th>${escapeHtml(playerName(p, i))}</th>`; });
+  let head = `<thead><tr><th class="rowhead">${roundLabel}</th>`;
+  state.players.forEach((p, i) => { head += `<th class="${isLeader(i) ? 'lead-col' : ''}">${escapeHtml(playerName(p, i))}</th>`; });
   head += '</tr></thead>';
   table.innerHTML = head;
 
   const tbody = el('<tbody></tbody>');
   for (let r = 0; r < maxDone; r++) {
     let row = `<tr><td class="rowhead">${r + 1}</td>`;
-    state.players.forEach((p) => {
+    state.players.forEach((p, i) => {
       const e = (state.scores[p.id] || [])[r];
-      if (!e) { row += '<td class="muted">–</td>'; return; }
+      const leadCls = isLeader(i) ? ' lead-col' : '';
+      if (!e) { row += `<td class="muted${leadCls}">–</td>`; return; }
       const pts = scoreRound(r + 1, e.bid, e.tricks, e.bonus);
       const cls = pts >= 0 ? 'pos' : 'neg';
-      row += `<td class="pts ${cls}">${pts > 0 ? '+' : ''}${pts}</td>`;
+      row += `<td class="pts ${cls}${leadCls}">${pts > 0 ? '+' : ''}${pts}</td>`;
     });
     row += '</tr>';
     tbody.appendChild(el(row));
   }
 
   // Summenzeile
-  let totalRow = '<tr class="total-row"><td class="name rowhead">Gesamt</td>';
-  state.players.forEach((p) => { totalRow += `<td>${totalFor(p.id)}</td>`; });
+  let totalRow = `<tr class="total-row"><td class="name rowhead">${totalLabel}</td>`;
+  state.players.forEach((p, i) => { totalRow += `<td class="${isLeader(i) ? 'lead-col' : ''}">${totalFor(p.id)}</td>`; });
   totalRow += '</tr>';
   tbody.appendChild(el(totalRow));
 
@@ -493,6 +507,10 @@ function renderBoard() {
 
   if (maxDone === 0) {
     appEl.appendChild(el('<p class="hint center">Noch keine Runde abgeschlossen.</p>'));
+  } else if (maxTotal !== null) {
+    const leaderNames = state.players.map((p, i) => (isLeader(i) ? playerName(p, i) : null)).filter(Boolean);
+    const label = leaderNames.length > 1 ? `${leaderNames.join(', ')} führen gemeinsam` : `${leaderNames[0]} führt`;
+    appEl.appendChild(el(`<p class="hint center lead-hint">👑 ${label}</p>`));
   }
 }
 

@@ -290,15 +290,46 @@ input[type="text"]:focus { outline: 2px solid var(--gold-dim); }
 
 /* --- Scoreboard table --- */
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-table.board { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
-table.board th, table.board td { padding: 8px 10px; text-align: center; white-space: nowrap; border-bottom: 1px solid var(--line); }
+/* table-layout: fixed teilt die Breite gleichmäßig auf Spalten auf, statt dass
+   lange Namen die Tabelle über den Bildschirm hinaus aufblähen. */
+table.board { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 0.86rem; }
+table.board th, table.board td { padding: 8px 8px; text-align: center; border-bottom: 1px solid var(--line); }
+table.board td:not(.rowhead) { white-space: nowrap; } /* Zahlen bleiben einzeilig */
+table.board th { white-space: normal; word-break: break-word; line-height: 1.2; } /* lange Namen dürfen umbrechen */
 table.board thead th { color: var(--muted); font-weight: 600; font-size: 0.75rem; position: sticky; top: 0; }
-table.board th.rowhead, table.board td.rowhead { text-align: left; color: var(--muted); }
+table.board th.rowhead, table.board td.rowhead {
+  width: 58px; text-align: left; color: var(--muted); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; /* Sicherheitsnetz: Text darf nie in die Nachbarspalte laufen */
+}
 table.board td.pts { font-weight: 700; }
 table.board td.pos { color: var(--green-text); }
 table.board td.neg { color: var(--red-text); }
 table.board tr.total-row td { border-top: 2px solid var(--gold-dim); font-weight: 800; font-size: 0.95rem; }
 table.board tr.total-row td.name { color: var(--gold-text); }
+
+/* Ab 5 bzw. 7 Spieler*innen wird die Tafel kompakter, damit man nicht seitlich
+   scrollen muss. */
+table.board.compact { font-size: 0.74rem; }
+table.board.compact th, table.board.compact td { padding: 6px 4px; }
+table.board.compact th.rowhead, table.board.compact td.rowhead { width: 32px; }
+table.board.compact thead th { font-size: 0.66rem; }
+table.board.compact tr.total-row td { font-size: 0.82rem; }
+
+table.board.tiny { font-size: 0.66rem; }
+table.board.tiny th, table.board.tiny td { padding: 5px 2px; }
+table.board.tiny th.rowhead, table.board.tiny td.rowhead { width: 24px; }
+table.board.tiny thead th { font-size: 0.58rem; }
+table.board.tiny tr.total-row td { font-size: 0.74rem; }
+
+/* Führungsspalte: gesamte Spalte der/des aktuell Führenden gold umrandet. */
+table.board th.lead-col, table.board td.lead-col {
+  border-left: 2px solid var(--gold);
+  border-right: 2px solid var(--gold);
+  background: rgba(244, 196, 48, 0.08);
+}
+table.board thead th.lead-col { border-top: 2px solid var(--gold); color: var(--gold-text); }
+table.board tbody tr:last-child td.lead-col { border-bottom: 2px solid var(--gold); }
+.lead-hint { color: var(--gold-text); font-weight: 700; }
 
 /* --- Ranking / results --- */
 .rank { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; background: var(--well); border: 1px solid var(--line); margin-bottom: 10px; }
