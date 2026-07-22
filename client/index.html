@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Skull King - Kartenspiel</title>
+  <meta name="theme-color" content="#1a2a3a">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/icon-192.png">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -43,6 +47,10 @@
           </div>
 
           <button id="btn-create-room" class="btn btn-primary">Raum erstellen</button>
+
+          <div class="offline-divider"><span>oder</span></div>
+          <button id="btn-offline-game" class="btn btn-secondary">🔌 Offline gegen Bots spielen</button>
+          <p class="offline-hint">Funktioniert ohne Internet - nur du gegen Bots.</p>
         </div>
 
         <!-- Join Room Tab -->
@@ -75,13 +83,16 @@
           <div class="connection-status" id="connection-status" title="Verbindungsstatus">●</div>
         </div>
 
-        <div class="share-section">
+        <div class="share-section" id="share-section">
           <p class="share-link-label">Einladungslink:</p>
           <div class="share-link-container">
             <input type="text" id="share-link" class="share-link" readonly>
             <button id="btn-copy-link" class="btn btn-small">Link kopieren</button>
           </div>
         </div>
+        <p id="lobby-offline-note" class="offline-hint" style="display: none;">
+          🔌 Offline-Spiel gegen Bots - keine Internetverbindung nötig.
+        </p>
 
         <div class="lobby-content">
           <div class="players-section">
@@ -204,7 +215,22 @@
     </div>
   </div>
 
+  <!-- socket.io is only needed for online play; if it's unavailable offline,
+       app.js falls back to offline-only mode gracefully. -->
   <script src="/socket.io/socket.io.js"></script>
+  <!-- Shared game engine (same code the server runs) for offline solo play. -->
+  <script src="/engine/cards.js"></script>
+  <script src="/engine/rules.js"></script>
+  <script src="/engine/bot.js"></script>
+  <script src="/engine/gameState.js"></script>
+  <script src="/localGame.js"></script>
   <script src="/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

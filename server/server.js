@@ -16,6 +16,9 @@ const PORT = process.env.PORT || 3000;
 const CLIENT_DIR = path.join(__dirname, '..', 'client');
 
 app.use(express.static(CLIENT_DIR));
+// Serve the shared game engine so the browser can run the exact same rules
+// offline (single-player vs bots) without duplicating the logic.
+app.use('/engine', express.static(path.join(__dirname, 'game')));
 app.get('/r/:code', (req, res) => {
   res.sendFile(path.join(CLIENT_DIR, 'index.html'));
 });

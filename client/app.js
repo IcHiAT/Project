@@ -1,7 +1,29 @@
 'use strict';
 
-// Socket.IO connection
-const socket = io();
+// Transport layer.
+// `socket` talks to the server (online multiplayer). `localTransport` runs the
+// game engine entirely in the browser (offline solo vs bots). `active()`
+// returns whichever one is currently in use, and both call the same
+// `handleState`/`render` path, so the rest of the UI is transport-agnostic.
+let socket = null;
+if (typeof io !== 'undefined') {
+  socket = io();
+  socket.on('connect', updateConnectionStatus);
+  socket.on('disconnect', updateConnectionStatus);
+  socket.on('state', handleState);
+}
+
+let localMode = false;
+let localTransport = null;
+
+function active() {
+  return localMode ? localTransport : socket;
+}
+
+function handleState(state) {
+  gameState = state;
+  render();
+}
 
 // State
 let gameState = null;
@@ -30,20 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
   updateConnectionStatus();
 });
 
-// Socket.IO events
-socket.on('connect', () => {
-  updateConnectionStatus();
-});
-
-socket.on('disconnect', () => {
-  updateConnectionStatus();
-});
-
-socket.on('state', (state) => {
-  gameState = state;
-  render();
-});
-
 // UI Events
 function initEventListeners() {
   // Start screen tabs
@@ -55,6 +63,9 @@ function initEventListeners() {
 
   // Create room
   document.getElementById('btn-create-room').addEventListener('click', createRoom);
+
+  // Offline solo vs bots
+  document.getElementById('btn-offline-game').addEventListener('click', startOfflineGame);
 
   // Join room
   document.getElementById('btn-join-room').addEventListener('click', joinRoom);
@@ -68,7 +79,7 @@ function initEventListeners() {
   // Edition selector
   document.getElementById('edition-select').addEventListener('change', (e) => {
     if (!gameState) return;
-    socket.emit('set-edition', {
+    active().emit('set-edition', {
       roomCode: gameState.roomCode,
       playerId: myId,
       editionKey: e.target.value,
@@ -81,7 +92,7 @@ function initEventListeners() {
   document.getElementById('btn-confirm-bid').addEventListener('click', confirmBid);
   document.getElementById('btn-continue-round').addEventListener('click', () => {
     if (!gameState) return;
-    socket.emit('continue-round', {
+    active().emit('continue-round', {
       roomCode: gameState.roomCode,
       playerId: myId,
     }, (response) => {
@@ -118,17 +129,45 @@ function createRoom() {
     showError('Bitte gib einen Namen ein', 'start');
     return;
   }
+  if (!socket) {
+    showError('Keine Serververbindung. Nutze „Offline gegen Bots".', 'start');
+    return;
+  }
 
   const editionKey = document.querySelector('input[name="edition"]:checked').value;
 
   socket.emit('create-room', { name, editionKey }, (response) => {
     if (response.ok) {
+      localMode = false;
       myId = response.playerId;
       roomCode = response.roomCode;
       saveSession();
       showScreen('lobby');
     } else {
       showError(response.error, 'start');
+    }
+  });
+}
+
+// Offline single-player: build a local room in the browser (no server) and
+// drop the player straight into the lobby to add bots and start.
+function startOfflineGame() {
+  const name = document.getElementById('create-name').value.trim() || 'Ich';
+  const editionKey = document.querySelector('input[name="edition"]:checked').value;
+
+  localMode = true;
+  localTransport = new window.LocalTransport();
+  localTransport.on('state', handleState);
+  myId = localTransport.myId;
+  clearSession(); // offline games are not resumable across reloads
+
+  localTransport.emit('create-room', { name, editionKey }, (response) => {
+    if (response.ok) {
+      roomCode = response.roomCode;
+      showScreen('lobby');
+    } else {
+      showError(response.error, 'start');
+      localMode = false;
     }
   });
 }
@@ -145,9 +184,14 @@ function joinRoom() {
     showError('Bitte gib einen Raum-Code ein', 'start');
     return;
   }
+  if (!socket) {
+    showError('Keine Serververbindung. Beitreten braucht Internet.', 'start');
+    return;
+  }
 
   socket.emit('join-room', { roomCode: code, name, playerId: undefined }, (response) => {
     if (response.ok) {
+      localMode = false;
       myId = response.playerId;
       roomCode = response.roomCode;
       saveSession();
@@ -160,7 +204,7 @@ function joinRoom() {
 
 function addBot() {
   if (!gameState) return;
-  socket.emit('add-bot', {
+  active().emit('add-bot', {
     roomCode: gameState.roomCode,
     playerId: myId,
   }, (response) => {
@@ -170,7 +214,7 @@ function addBot() {
 
 function startGame() {
   if (!gameState) return;
-  socket.emit('start-game', {
+  active().emit('start-game', {
     roomCode: gameState.roomCode,
     playerId: myId,
   }, (response) => {
@@ -180,7 +224,12 @@ function startGame() {
 
 function leaveLobby() {
   if (!gameState) return;
-  socket.emit('remove-player', {
+  if (localMode) {
+    clearSession();
+    location.pathname = '/';
+    return;
+  }
+  active().emit('remove-player', {
     roomCode: gameState.roomCode,
     playerId: myId,
     targetId: myId,
@@ -212,7 +261,7 @@ function confirmBid() {
     return;
   }
 
-  socket.emit('place-bid', {
+  active().emit('place-bid', {
     roomCode: gameState.roomCode,
     playerId: myId,
     bid,
@@ -222,7 +271,7 @@ function confirmBid() {
 }
 
 function playCard(cardId, tigressChoice) {
-  socket.emit('play-card', {
+  active().emit('play-card', {
     roomCode: gameState.roomCode,
     playerId: myId,
     cardId,
@@ -252,9 +301,9 @@ function checkAndRejoin() {
     switchTab('join');
   }
 
-  // Try to rejoin from localStorage
+  // Try to rejoin from localStorage (online games only - needs the server)
   const session = localStorage.getItem('skullking_session');
-  if (session) {
+  if (session && socket) {
     try {
       const { roomCode: savedCode, playerId: savedId } = JSON.parse(session);
       roomCode = savedCode;
@@ -293,8 +342,17 @@ function render() {
 }
 
 function renderLobby() {
-  document.getElementById('room-code-display').textContent = gameState.roomCode;
-  document.getElementById('share-link').value = `${location.origin}/r/${gameState.roomCode}`;
+  // In offline solo mode there is no shareable room - hide the invite UI and
+  // show a short offline note instead.
+  const shareSection = document.getElementById('share-section');
+  if (shareSection) shareSection.style.display = localMode ? 'none' : '';
+  const offlineNote = document.getElementById('lobby-offline-note');
+  if (offlineNote) offlineNote.style.display = localMode ? 'block' : 'none';
+
+  document.getElementById('room-code-display').textContent = localMode ? 'Offline' : gameState.roomCode;
+  if (!localMode) {
+    document.getElementById('share-link').value = `${location.origin}/r/${gameState.roomCode}`;
+  }
 
   // Edition selector
   document.getElementById('edition-select').value = gameState.editionKey;
@@ -335,7 +393,7 @@ function renderLobby() {
       removeBtn.textContent = player.id === myId ? 'Verlassen' : 'Entfernen';
       removeBtn.style.marginLeft = '10px';
       removeBtn.addEventListener('click', () => {
-        socket.emit('remove-player', {
+        active().emit('remove-player', {
           roomCode: gameState.roomCode,
           playerId: myId,
           targetId: player.id,
@@ -693,9 +751,10 @@ function showError(message, screen) {
 }
 
 function updateConnectionStatus() {
-  const status = socket.connected ? '●' : '◯';
-  const color = socket.connected ? 'var(--success)' : 'var(--danger)';
-  const title = socket.connected ? 'Verbunden' : 'Getrennt';
+  const connected = localMode ? true : !!(socket && socket.connected);
+  const status = localMode ? '🔌' : (connected ? '●' : '◯');
+  const color = connected ? 'var(--success)' : 'var(--danger)';
+  const title = localMode ? 'Offline-Modus (gegen Bots)' : (connected ? 'Verbunden' : 'Getrennt');
 
   const statusGame = document.getElementById('connection-status');
   const statusLobby = document.getElementById('connection-status-game');
@@ -712,7 +771,7 @@ function updateConnectionStatus() {
     statusLobby.title = title;
   }
 
-  if (!socket.connected) {
+  if (!connected) {
     if (statusGame) statusGame.classList.add('offline');
     if (statusLobby) statusLobby.classList.add('offline');
   } else {

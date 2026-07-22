@@ -40,6 +40,29 @@ brauchen.
 - Nach einem Seiten-Reload wird automatisch versucht, dem eigenen Platz im
   selben Raum wieder beizutreten (via `localStorage`).
 
+## Offline spielen (ohne Internet)
+
+Die App ist eine PWA (Progressive Web App) und kann komplett offline gegen Bots
+gespielt werden:
+
+- **„Offline gegen Bots"** auf der Startseite startet ein Solo-Spiel, dessen
+  Spiellogik vollständig im Browser läuft — kein Server, keine Verbindung nötig.
+- **Als App installieren**: Die Seite einmal online öffnen, dann im Browser
+  „Zum Startbildschirm hinzufügen" (Handy) bzw. das Installieren-Symbol in der
+  Adressleiste (Desktop) wählen. Danach startet Skull King wie eine echte App
+  und funktioniert auch ohne Netz.
+- Ein Service-Worker cached die App beim ersten Online-Besuch, sodass sie sich
+  später auch offline öffnen lässt.
+
+**Was offline nicht geht:** Mit anderen echten Spielern spielen — dafür ist eine
+Internetverbindung zwingend nötig, da die Geräte sich sonst nicht erreichen
+können. Nur der Solo-Modus gegen Bots läuft ohne Netz.
+
+Damit online und offline dieselbe (garantiert identische) Spiellogik läuft, sind
+die Engine-Module (`server/game/*.js`) isomorph geschrieben: Der Server lädt sie
+per `require`, der Browser über `/engine/*.js` als globale Skripte — eine
+einzige Quelle für Regeln, Wertung und Bot-KI.
+
 ## Spielregeln — Annahmen & Quellen
 
 Es gibt zwei wählbare Kartensätze, beide mit 66 Karten (passend zur bekannten
@@ -91,5 +114,10 @@ Piraten" (uneinheitlich dokumentiert, daher weggelassen statt geraten).
 - `server/game/gameState.js` — Zustandsmaschine pro Raum (Lobby → Ansage →
   Ausspielen → Rundenende → nächste Runde/Spielende).
 - `server/game/bot.js` — Heuristische Bot-Ansagen/-Spielzüge.
-- `server/server.js` — Express + Socket.IO, Raumverwaltung, Events.
+- `server/server.js` — Express + Socket.IO, Raumverwaltung, Events; liefert die
+  Engine zusätzlich unter `/engine` für den Browser aus.
+- `client/localGame.js` — Lokaler Transport-Adapter: bildet die Socket-
+  Schnittstelle nach und treibt eine Engine-Instanz im Browser (Offline-Solo).
+- `client/service-worker.js`, `client/manifest.json` — PWA (Offline-Caching,
+  Installierbarkeit).
 - `client/` — Statisches Frontend (kein Build-Schritt).

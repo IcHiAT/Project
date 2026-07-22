@@ -1,10 +1,21 @@
-'use strict';
+// UMD wrapper: works under Node require() (server) and as a browser global
+// (window.SK.gameState) so the exact same game state machine runs online and
+// offline.
+(function (root, factory) {
+  'use strict';
+  if (typeof module === 'object' && module.exports) {
+    module.exports = factory(require('./cards'), require('./rules'), require('./bot'));
+  } else {
+    root.SK = root.SK || {};
+    root.SK.gameState = factory(root.SK.cards, root.SK.rules, root.SK.bot);
+  }
+}(typeof self !== 'undefined' ? self : this, function (cards, rules, bot) {
+  'use strict';
 
-const { EDITIONS, buildDeck, shuffle, maxRoundsForPlayers } = require('./cards');
-const { ledSuitFromPlays, legalMoves, resolveTrick, scoreRoundForPlayer } = require('./rules');
-const bot = require('./bot');
+  const { EDITIONS, buildDeck, shuffle, maxRoundsForPlayers } = cards;
+  const { ledSuitFromPlays, legalMoves, resolveTrick, scoreRoundForPlayer } = rules;
 
-let seatCounter = 0;
+  let seatCounter = 0;
 function nextBotId() {
   seatCounter += 1;
   return `bot-${seatCounter}`;
@@ -302,4 +313,5 @@ function describeCard(card) {
   return card.type;
 }
 
-module.exports = { Game };
+  return { Game };
+}));
