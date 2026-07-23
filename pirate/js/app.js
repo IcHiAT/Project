@@ -331,7 +331,7 @@ function renderGame() {
         <td><div class="stepper row-stepper">
           <button data-act="tr-" data-pid="${p.id}" aria-label="Stiche -">−</button>
           <span class="val">${d.tricks}</span>
-          <button data-act="tr+" data-pid="${p.id}" aria-label="Stiche +">+</button>
+          <button data-act="tr+" data-pid="${p.id}" aria-label="Stiche +" ${trickSum >= maxTricks ? 'disabled' : ''}>+</button>
         </div></td>
         <td class="col-bonus">
           <button class="bonus-pill ${open ? 'open' : ''}" data-act="bonus-toggle" data-pid="${p.id}">${bonus > 0 ? '+' : ''}${bonus}${open ? ' ▾' : ' ▸'}</button>
@@ -395,7 +395,14 @@ function renderGame() {
       case 'bid-': d.bid = clamp(d.bid - 1, 0, maxTricks); break;
       case 'bid+': d.bid = clamp(d.bid + 1, 0, maxTricks); break;
       case 'tr-': d.tricks = clamp(d.tricks - 1, 0, maxTricks); break;
-      case 'tr+': d.tricks = clamp(d.tricks + 1, 0, maxTricks); break;
+      case 'tr+': {
+        // Insgesamt dürfen nie mehr Stiche vergeben werden, als es Karten
+        // in der Runde gibt – Obergrenze richtet sich danach, was die
+        // übrigen Spieler*innen schon eingetragen haben.
+        const otherSum = trickSum - d.tricks;
+        d.tricks = clamp(d.tricks + 1, 0, maxTricks - otherSum);
+        break;
+      }
       case 'bonus-toggle': state.bonusOpen[pid] = !state.bonusOpen[pid]; break;
       case 'c14-': d.c14 = clamp(d.c14 - 1, 0, 3); break;
       case 'c14+': d.c14 = clamp(d.c14 + 1, 0, 3); break;

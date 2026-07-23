@@ -1,5 +1,5 @@
 /* Service Worker – App offline verfügbar machen und Updates automatisch verteilen. */
-const CACHE = 'arrarr-v16';
+const CACHE = 'arrarr-v17';
 const ASSETS = [
   './',
   './index.html',

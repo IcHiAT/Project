@@ -284,6 +284,7 @@ table.entry-table tr.entry-row:last-child td { border-bottom: none; }
   font-size: clamp(0.8rem, 3.6vw, 1rem); font-weight: 700; line-height: 1; padding: 0; cursor: pointer;
 }
 .row-stepper button:active { background: rgba(244, 196, 48, 0.2); }
+.row-stepper button:disabled { opacity: 0.35; cursor: not-allowed; }
 .row-stepper .val {
   flex: 0 1 auto; min-width: 12px; text-align: center; font-weight: 800;
   font-size: clamp(0.78rem, 3.4vw, 0.9rem); font-variant-numeric: tabular-nums;
