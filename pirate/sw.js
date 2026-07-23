@@ -1,5 +1,5 @@
 /* Service Worker – App offline verfügbar machen und Updates automatisch verteilen. */
-const CACHE = 'arrarr-v15';
+const CACHE = 'arrarr-v16';
 const ASSETS = [
   './',
   './index.html',
@@ -15,10 +15,18 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
   // Jede Datei einzeln mit cache:'reload' holen, damit auch der Erstaufbau
   // wirklich frisch vom Server kommt statt aus dem HTTP-Cache des Browsers.
+  // Jede Datei wird EINZELN abgefangen (catch pro Datei): scheitert eine
+  // (z. B. kurzer Verbindungsaussetzer), bricht das nicht den kompletten
+  // Offline-Aufbau ab – sonst gäbe es am Ende gar keine Offline-Funktion,
+  // ohne dass das online überhaupt auffällt.
   event.waitUntil(
     caches.open(CACHE)
       .then((cache) => Promise.all(
-        ASSETS.map((url) => fetch(url, { cache: 'reload' }).then((res) => cache.put(url, res)))
+        ASSETS.map((url) =>
+          fetch(url, { cache: 'reload' })
+            .then((res) => { if (res.ok) return cache.put(url, res); })
+            .catch(() => {})
+        )
       ))
       .then(() => self.skipWaiting())
   );
