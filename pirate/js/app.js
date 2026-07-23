@@ -309,96 +309,106 @@ function renderGame() {
   `);
   appEl.appendChild(bar);
 
+  // Tabellen-Layout: eine Zeile pro Spieler*in, Kopfzeile nur einmal.
+  // Bonus klappt als eigene Zeile direkt unter der jeweiligen Person auf.
+  let bodyHtml = '';
   state.players.forEach((p, idx) => {
     const d = getDraft(p.id);
-    d.bid = clamp(d.bid, 0, maxTricks);
-    d.tricks = clamp(d.tricks, 0, maxTricks);
     const bonus = calcBonus(d);
     const open = !!state.bonusOpen[p.id];
 
-    const rows14 = state.edition === 'alt' ? '' : `
+    bodyHtml += `
+      <tr class="entry-row">
+        <td class="col-name">
+          <span class="pn">${escapeHtml(playerName(p, idx))}</span>
+          <span class="pt">${totalFor(p.id)}</span>
+        </td>
+        <td><div class="stepper row-stepper">
+          <button data-act="bid-" data-pid="${p.id}" aria-label="Gebot -">−</button>
+          <span class="val">${d.bid}</span>
+          <button data-act="bid+" data-pid="${p.id}" aria-label="Gebot +">+</button>
+        </div></td>
+        <td><div class="stepper row-stepper">
+          <button data-act="tr-" data-pid="${p.id}" aria-label="Stiche -">−</button>
+          <span class="val">${d.tricks}</span>
+          <button data-act="tr+" data-pid="${p.id}" aria-label="Stiche +">+</button>
+        </div></td>
+        <td class="col-bonus">
+          <button class="bonus-pill ${open ? 'open' : ''}" data-act="bonus-toggle" data-pid="${p.id}">${bonus > 0 ? '+' : ''}${bonus}${open ? ' ▾' : ' ▸'}</button>
+        </td>
+      </tr>`;
+
+    if (open) {
+      const rows14 = state.edition === 'alt' ? '' : `
         <div class="brow">
           <span class="blabel">Farbige 14 gefangen<em>je +10</em></span>
           <div class="stepper mini">
-            <button data-act="c14-" aria-label="Farbige 14 weniger">−</button>
+            <button data-act="c14-" data-pid="${p.id}" aria-label="Farbige 14 weniger">−</button>
             <span class="val">${d.c14}</span>
-            <button data-act="c14+" aria-label="Farbige 14 mehr">+</button>
+            <button data-act="c14+" data-pid="${p.id}" aria-label="Farbige 14 mehr">+</button>
           </div>
         </div>
         <div class="brow">
           <span class="blabel">Schwarze 14 · Jolly Roger<em>+20</em></span>
-          <button class="toggle ${d.b14 ? 'on' : ''}" data-act="b14">${d.b14 ? 'Ja' : 'Nein'}</button>
+          <button class="toggle ${d.b14 ? 'on' : ''}" data-act="b14" data-pid="${p.id}">${d.b14 ? 'Ja' : 'Nein'}</button>
         </div>`;
 
-    const detailHtml = open ? `
-      <div class="bonus-detail">
-        ${rows14}
-        <div class="brow">
-          <span class="blabel">Skull King fängt Pirat<em>je +30</em></span>
-          <div class="stepper mini">
-            <button data-act="pir-" aria-label="Piraten weniger">−</button>
-            <span class="val">${d.pirates}</span>
-            <button data-act="pir+" aria-label="Piraten mehr">+</button>
-          </div>
-        </div>
-        <div class="brow">
-          <span class="blabel">Meerjungfrau fängt Skull King<em>+50</em></span>
-          <button class="toggle ${d.mermaid ? 'on' : ''}" data-act="mer">${d.mermaid ? 'Ja' : 'Nein'}</button>
-        </div>
-      </div>` : '';
-
-    const entry = el(`
-      <div class="entry">
-        <div class="entry-top">
-          <span class="entry-name">${escapeHtml(playerName(p, idx))}</span>
-          <span class="entry-total">Gesamt: <b>${totalFor(p.id)}</b></span>
-        </div>
-        <div class="fields two">
-          <div class="field">
-            <label>Gebot</label>
-            <div class="stepper">
-              <button data-act="bid-" aria-label="Gebot -">−</button>
-              <span class="val">${d.bid}</span>
-              <button data-act="bid+" aria-label="Gebot +">+</button>
+      bodyHtml += `
+      <tr class="bonus-row"><td colspan="4">
+        <div class="bonus-detail">
+          ${rows14}
+          <div class="brow">
+            <span class="blabel">Skull King fängt Pirat<em>je +30</em></span>
+            <div class="stepper mini">
+              <button data-act="pir-" data-pid="${p.id}" aria-label="Piraten weniger">−</button>
+              <span class="val">${d.pirates}</span>
+              <button data-act="pir+" data-pid="${p.id}" aria-label="Piraten mehr">+</button>
             </div>
           </div>
-          <div class="field">
-            <label>Stiche</label>
-            <div class="stepper">
-              <button data-act="tr-" aria-label="Stiche -">−</button>
-              <span class="val">${d.tricks}</span>
-              <button data-act="tr+" aria-label="Stiche +">+</button>
-            </div>
+          <div class="brow">
+            <span class="blabel">Meerjungfrau fängt Skull King<em>+50</em></span>
+            <button class="toggle ${d.mermaid ? 'on' : ''}" data-act="mer" data-pid="${p.id}">${d.mermaid ? 'Ja' : 'Nein'}</button>
           </div>
         </div>
-        <button class="bonus-summary ${open ? 'open' : ''}" data-act="bonus-toggle">
-          <span class="bchip">🏴‍☠️ Bonus</span>
-          <span class="bval">+${bonus}</span>
-          <span class="bhint">${open ? 'zuklappen' : 'Fänge eintragen'}</span>
-          <span class="bcaret">${open ? '▾' : '▸'}</span>
-        </button>
-        ${detailHtml}
-      </div>
-    `);
-
-    const bind = (sel, fn) => {
-      const btn = entry.querySelector(sel);
-      if (btn) btn.addEventListener('click', () => { fn(); render(); });
-    };
-    bind('[data-act="bid-"]', () => d.bid = clamp(d.bid - 1, 0, maxTricks));
-    bind('[data-act="bid+"]', () => d.bid = clamp(d.bid + 1, 0, maxTricks));
-    bind('[data-act="tr-"]', () => d.tricks = clamp(d.tricks - 1, 0, maxTricks));
-    bind('[data-act="tr+"]', () => d.tricks = clamp(d.tricks + 1, 0, maxTricks));
-    bind('[data-act="bonus-toggle"]', () => { state.bonusOpen[p.id] = !state.bonusOpen[p.id]; });
-    bind('[data-act="c14-"]', () => d.c14 = clamp(d.c14 - 1, 0, 3));
-    bind('[data-act="c14+"]', () => d.c14 = clamp(d.c14 + 1, 0, 3));
-    bind('[data-act="b14"]', () => d.b14 = d.b14 ? 0 : 1);
-    bind('[data-act="pir-"]', () => d.pirates = clamp(d.pirates - 1, 0, 5));
-    bind('[data-act="pir+"]', () => d.pirates = clamp(d.pirates + 1, 0, 5));
-    bind('[data-act="mer"]', () => d.mermaid = d.mermaid ? 0 : 1);
-
-    appEl.appendChild(entry);
+      </td></tr>`;
+    }
   });
+
+  const entriesWrap = el(`
+    <div class="panel"><div class="table-wrap">
+      <table class="entry-table">
+        <thead><tr>
+          <th class="col-name">Spieler</th><th>Gebot</th><th>Stiche</th><th class="col-bonus">Bonus</th>
+        </tr></thead>
+        <tbody>${bodyHtml}</tbody>
+      </table>
+    </div></div>
+  `);
+
+  // Ein Klick-Listener für alle Zeilen (Event Delegation über data-act/data-pid).
+  entriesWrap.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const pid = btn.dataset.pid;
+    const d = getDraft(pid);
+    switch (btn.dataset.act) {
+      case 'bid-': d.bid = clamp(d.bid - 1, 0, maxTricks); break;
+      case 'bid+': d.bid = clamp(d.bid + 1, 0, maxTricks); break;
+      case 'tr-': d.tricks = clamp(d.tricks - 1, 0, maxTricks); break;
+      case 'tr+': d.tricks = clamp(d.tricks + 1, 0, maxTricks); break;
+      case 'bonus-toggle': state.bonusOpen[pid] = !state.bonusOpen[pid]; break;
+      case 'c14-': d.c14 = clamp(d.c14 - 1, 0, 3); break;
+      case 'c14+': d.c14 = clamp(d.c14 + 1, 0, 3); break;
+      case 'b14': d.b14 = d.b14 ? 0 : 1; break;
+      case 'pir-': d.pirates = clamp(d.pirates - 1, 0, 5); break;
+      case 'pir+': d.pirates = clamp(d.pirates + 1, 0, 5); break;
+      case 'mer': d.mermaid = d.mermaid ? 0 : 1; break;
+      default: return;
+    }
+    render();
+  });
+
+  appEl.appendChild(entriesWrap);
 
   // Stich-Summenhinweis (trickSum bereits oben für die Rundenkopf-Chips berechnet)
   const hintWrap = el('<div></div>');
