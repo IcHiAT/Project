@@ -262,26 +262,32 @@ table.entry-table thead th {
   color: var(--muted); font-weight: 600; font-size: 0.66rem; text-transform: uppercase;
   letter-spacing: 0.3px; padding: 4px 4px 6px; text-align: center; border-bottom: 1px solid var(--line);
 }
-table.entry-table thead th.col-name { text-align: left; width: 36%; }
-table.entry-table thead th.col-bonus { width: 21%; }
-table.entry-table td { padding: 6px 4px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.entry-table thead th.col-name { text-align: left; width: 32%; }
+table.entry-table thead th.col-bonus { width: 18%; }
+table.entry-table td {
+  padding: 6px 3px; border-bottom: 1px solid var(--line); vertical-align: middle;
+  overflow: hidden; /* Sicherheitsnetz: Inhalt darf nie in die Nachbarspalte laufen */
+}
 table.entry-table tr.entry-row:last-child td { border-bottom: none; }
 
-.entry-table .col-name { overflow: hidden; }
 .entry-table .col-name .pn {
   display: block; font-weight: 700; font-size: 0.86rem;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .entry-table .col-name .pt { display: block; font-size: 0.68rem; color: var(--gold-text); font-weight: 700; }
 
-.row-stepper { display: flex; align-items: center; justify-content: center; gap: 3px; }
+/* Buttons/Wert schrumpfen auf schmalen Spalten, statt in die Nachbarspalte überzulaufen. */
+.row-stepper { display: flex; align-items: center; justify-content: center; gap: clamp(1px, 1vw, 3px); }
 .row-stepper button {
-  width: 26px; height: 26px; flex: 0 0 auto; border-radius: 7px;
+  width: clamp(20px, 7vw, 26px); height: clamp(20px, 7vw, 26px); flex: 0 0 auto; border-radius: 7px;
   border: 1px solid var(--line); background: var(--surface); color: var(--text);
-  font-size: 1rem; font-weight: 700; line-height: 1; padding: 0; cursor: pointer;
+  font-size: clamp(0.8rem, 3.6vw, 1rem); font-weight: 700; line-height: 1; padding: 0; cursor: pointer;
 }
 .row-stepper button:active { background: rgba(244, 196, 48, 0.2); }
-.row-stepper .val { min-width: 16px; text-align: center; font-weight: 800; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.row-stepper .val {
+  flex: 0 1 auto; min-width: 12px; text-align: center; font-weight: 800;
+  font-size: clamp(0.78rem, 3.4vw, 0.9rem); font-variant-numeric: tabular-nums;
+}
 
 .entry-table .col-bonus { text-align: center; }
 .bonus-pill {
