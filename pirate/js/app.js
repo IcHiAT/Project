@@ -284,16 +284,30 @@ function renderGame() {
 
   if (!state.bonusOpen) state.bonusOpen = {}; // welche Bonus-Bereiche sind aufgeklappt
 
-  // Rundenkopf
+  const maxTricks = state.currentRound;
+  // Vorab clampen, damit die Summen unten garantiert mit den tatsächlich
+  // angezeigten (begrenzten) Werten übereinstimmen.
+  state.players.forEach((p) => {
+    const d = getDraft(p.id);
+    d.bid = clamp(d.bid, 0, maxTricks);
+    d.tricks = clamp(d.tricks, 0, maxTricks);
+  });
+  const bidSum = state.players.reduce((s, p) => s + getDraft(p.id).bid, 0);
+  const trickSum = state.players.reduce((s, p) => s + getDraft(p.id).tricks, 0);
+
+  // Rundenkopf: Rundenzahl links, live mitlaufende Summen (Gebote/Stiche) und
+  // Kartenanzahl rechts – bricht auf schmalen Screens sauber in eine 2. Zeile um.
   const bar = el(`
     <div class="round-bar">
       <div class="round-num">Runde ${state.currentRound}<small> / ${state.totalRounds}</small></div>
-      <div class="cards">${state.currentRound} ${state.currentRound === 1 ? 'Karte' : 'Karten'}</div>
+      <div class="round-chips">
+        <span class="chip bid">${bidSum} ${bidSum === 1 ? 'Gebot' : 'Gebote'}</span>
+        <span class="chip trick">${trickSum} ${trickSum === 1 ? 'Stich' : 'Stiche'}</span>
+        <span class="chip cards">${state.currentRound} ${state.currentRound === 1 ? 'Karte' : 'Karten'}</span>
+      </div>
     </div>
   `);
   appEl.appendChild(bar);
-
-  const maxTricks = state.currentRound;
 
   state.players.forEach((p, idx) => {
     const d = getDraft(p.id);
@@ -386,8 +400,7 @@ function renderGame() {
     appEl.appendChild(entry);
   });
 
-  // Stich-Summenhinweis
-  const trickSum = state.players.reduce((s, p) => s + getDraft(p.id).tricks, 0);
+  // Stich-Summenhinweis (trickSum bereits oben für die Rundenkopf-Chips berechnet)
   const hintWrap = el('<div></div>');
   if (trickSum !== maxTricks) {
     hintWrap.appendChild(el(`<p class="hint warn">Hinweis: Summe der Stiche ist ${trickSum}, sollte aber ${maxTricks} sein.</p>`));
