@@ -90,18 +90,28 @@ dort verteilen.
 
 ## `.stignore` im Syncthing-Ordner
 
-In die Datei `.stignore` **im Wurzelverzeichnis des Syncthing-Ordners** (nicht
-in diesem Projektordner – dort wird sie nicht gelesen) gehoeren die Ordner, die
-nie gesynct werden muessen:
+Ein Syncthing-Ordner synct alles, was darin liegt, rekursiv – ausser dem, was
+in `.stignore` ausgenommen ist. Diese Datei liegt **im Wurzelverzeichnis des
+Syncthing-Ordners**, also dort, wo auch der versteckte Ordner `.stfolder`
+liegt. Nur dort wird sie gelesen, nicht in Unterordnern.
+
+Die Pfade darin sind **relativ zu diesem Wurzelverzeichnis**. Liegt der Klon
+also z. B. unter `<Syncthing-Ordner>/Projekte/skullking`, lauten die Eintraege:
 
 ```
-skullking/node_modules
-skullking/android
-skullking/ios
+Projekte/skullking/node_modules
+Projekte/skullking/android
+Projekte/skullking/ios
 ```
 
-`skullking/.git` darf **nicht** eingetragen werden. Ohne `.git` bekommt das
+Liegt er direkt im Wurzelverzeichnis, entsprechend ohne `Projekte/` davor.
+
+`…/skullking/.git` darf **nicht** eingetragen werden. Ohne `.git` bekommt das
 Handy nur die Dateien, aber kein Repo – und genau dort soll ja Git laufen.
+
+Das Wurzelverzeichnis findet man in der Syncthing-Oberflaeche (im Browser unter
+<http://localhost:8384>): dort steht bei jedem Ordner der "Ordnerpfad" sowie,
+mit welchen Geraeten er geteilt ist.
 
 ## Wenn doch mal `.sync-conflict`-Dateien auftauchen
 
