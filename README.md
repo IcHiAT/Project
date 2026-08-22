@@ -77,3 +77,10 @@ pirate/icons/                  App-Icons (SVG + PNG)
 test/scoring.test.js          Tests der Punktelogik (gegen pirate/js/scoring.js)
 serve.js                      Lokaler Testserver
 ```
+
+## Ablage im Syncthing-Projektordner
+
+Dieses Projekt gehört in den gemeinsamen Syncthing-`Projekte`-Ordner, damit es
+wie Proxmox, OpenWrt und der Rest auf allen Geräten liegt. Wie der Umzug geht
+und warum Git-Befehle dabei nur von einem Gerät aus laufen sollten, steht in
+[`docs/syncthing-projektordner.md`](docs/syncthing-projektordner.md).
